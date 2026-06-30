@@ -58,8 +58,8 @@ Depois de fazer uma requisicao no Servico A, procure por traces dos servicos `se
 
 Print do Zipkin exibindo a requisicao distribuida e os spans manuais:
 
-![Trace no Zipkin](<img width="1512" height="870" alt="Captura de Tela 2026-06-30 às 10 48 16" src="https://github.com/user-attachments/assets/18f8b6b2-4d4c-432d-b9c1-1b8a5f9b7333" />
-)
+<img width="1512" height="870" alt="Captura de Tela 2026-06-30 às 10 48 59" src="https://github.com/user-attachments/assets/a505cbb0-7c05-4b94-9a82-234608ff1f7b" />
+
 
 ## Desenvolvimento local
 
