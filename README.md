@@ -54,9 +54,14 @@ Depois de fazer uma requisicao no Servico A, procure por traces dos servicos `se
 - `Busca de CEP`
 - `Busca de temperatura`
 
+## Evidencia
+
+Print do Zipkin exibindo a requisicao distribuida e os spans manuais:
+
+![Trace no Zipkin](file:///var/folders/p9/c3l6b9tj0s7c11mrd23dvbx00000gn/T/TemporaryItems/NSIRD_screencaptureui_L3BCxF/Captura%20de%20Tela%202026-06-30%20a%CC%80s%2010.44.25.png)
+
 ## Desenvolvimento local
 
 ```bash
 go test ./...
 ```
-
