@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -25,6 +26,8 @@ var (
 	errZipcodeNotFound = errors.New("zipcode not found")
 	errWeatherNotFound = errors.New("weather not found")
 )
+
+const defaultViaCEPBaseURL = "https://viacep.com.br/ws"
 
 type requestPayload struct {
 	CEP string `json:"cep"`
@@ -51,6 +54,7 @@ func main() {
 
 	port := getenv("PORT", "8081")
 	app := &application{
+		viaCEPBaseURL: getenv("VIACEP_BASE_URL", defaultViaCEPBaseURL),
 		client: &http.Client{
 			Timeout:   10 * time.Second,
 			Transport: otelhttp.NewTransport(http.DefaultTransport),
@@ -78,7 +82,8 @@ func main() {
 }
 
 type application struct {
-	client *http.Client
+	viaCEPBaseURL string
+	client        *http.Client
 }
 
 func (app *application) handleWeather(w http.ResponseWriter, r *http.Request) {
@@ -136,7 +141,7 @@ func (app *application) fetchCity(ctx context.Context, cep string) (string, erro
 	ctx, span := tracer.Start(ctx, "Busca de CEP")
 	defer span.End()
 
-	endpoint := fmt.Sprintf("https://viacep.com.br/ws/%s/json/", cep)
+	endpoint := fmt.Sprintf("%s/%s/json/", strings.TrimRight(app.viaCEPBaseURL, "/"), cep)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return "", err
@@ -156,13 +161,13 @@ func (app *application) fetchCity(ctx context.Context, cep string) (string, erro
 	}
 
 	var data struct {
-		Localidade string `json:"localidade"`
-		Erro       bool   `json:"erro"`
+		Localidade string          `json:"localidade"`
+		Erro       json.RawMessage `json:"erro"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 		return "", err
 	}
-	if data.Erro || data.Localidade == "" {
+	if viaCEPHasError(data.Erro) || data.Localidade == "" {
 		return "", errZipcodeNotFound
 	}
 
@@ -258,6 +263,16 @@ func (app *application) geocodeCity(ctx context.Context, city string) (geocodeLo
 		Latitude:  data.Results[0].Latitude,
 		Longitude: data.Results[0].Longitude,
 	}, nil
+}
+
+func viaCEPHasError(raw json.RawMessage) bool {
+	value := strings.TrimSpace(string(raw))
+	switch value {
+	case "", "null", "false", `"false"`:
+		return false
+	default:
+		return true
+	}
 }
 
 func writeError(w http.ResponseWriter, status int, message string) {
