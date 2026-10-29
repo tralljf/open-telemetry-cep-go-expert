@@ -126,7 +126,7 @@ func (app *application) handleWeather(w http.ResponseWriter, r *http.Request) {
 		City:  city,
 		TempC: round(tempC),
 		TempF: round(tempC*1.8 + 32),
-		TempK: round(tempC + 273.15),
+		TempK: round(tempC + 273),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
